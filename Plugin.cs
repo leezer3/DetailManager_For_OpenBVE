@@ -74,7 +74,20 @@ namespace DetailManager {
                 }
             }
             for (int i = 0; i < plugins_.Count; i++) {
-                if (!plugins_[i].Load(properties_list_[i])) { return false; }
+	            try
+	            {
+		            if (!plugins_[i].Load(properties_list_[i]))
+		            {
+			            properties.FailureReason = "DETAILMANAGER: A child plugin failed to load with the following failure reason: " + properties_list_[i].FailureReason;
+			            return false;
+		            }
+	            }
+	            catch (Exception ex)
+	            {
+		            properties.FailureReason = "DETAILMANAGER: Child plugin produced the following exception on loading: " + ex.Message;
+		            return false;
+	            }
+                
             }
             int panel_length = 0;
             for (int i = 0; i < properties_list_.Count; i++) {
