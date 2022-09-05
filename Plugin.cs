@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using OpenBveApi.Colors;
 
 namespace DetailManager {
 
@@ -37,7 +38,8 @@ namespace DetailManager {
         private List<LoadProperties> properties_list_;
         private Train train_;
 
-
+        private AddInterfaceMessageDelegate addMessage;
+        
         // --- インターフェース関数 ---
 
         /// <summary>プラグインが読み込まれたときに呼び出されます。</summary>
@@ -50,6 +52,8 @@ namespace DetailManager {
             load_config.LoadCfgFile(cfg_path);
             plugins_ = new List<IRuntime>();
             properties_list_ = new List<LoadProperties>();
+            addMessage = properties.AddMessage;
+
             for (int i = 0; i < load_config.plugin_path_.Count; i++) {
                 Assembly plugin;
                 try {
@@ -123,10 +127,24 @@ namespace DetailManager {
 
         /// <summary>1フレームごとに呼び出されます。</summary>
         /// <param name="data">プラグインへ渡されるデータ</param>
-        public void Elapse(ElapseData data) {
-            foreach (IRuntime plugin in plugins_) {
-                plugin.Elapse(data);
+        public void Elapse(ElapseData data)
+        {
+	        int maxBrake = 0;
+	        foreach (IRuntime plugin in plugins_) {
+		        try
+		        {
+                    plugin.Elapse(data);
+			        maxBrake = Math.Max(data.Handles.BrakeNotch, maxBrake);
+		        }
+		        catch
+		        {
+                    plugin.Unload();
+			        addMessage("DETAILMANAGER: A child plugin failed during the Elapse call", MessageColor.Red, 10);
+		        }
+                
             }
+
+	        data.Handles.BrakeNotch = maxBrake;
             this.train_.Elapse(data, properties_list_);
         }
 
