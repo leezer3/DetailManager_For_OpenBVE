@@ -67,14 +67,14 @@ namespace DetailManager {
         /// <param name="file_path">ファイルパス</param>
         internal void LoadCfgFile(string file_path) {
             if (!File.Exists(file_path)) { return; }
-            string file_directory = System.IO.Path.GetDirectoryName(file_path);
+            string file_directory = Path.GetDirectoryName(file_path);
             string[] lines = File.ReadAllLines(file_path);
             if (lines.Length == 0) { return; }
             for (int i = 0; i < lines.Length; i++) {
-                string path = lines[i];
+                string path = lines[i].Trim();
                 path = path.Replace('/', Path.DirectorySeparatorChar);
                 path = path.Replace('\\', Path.DirectorySeparatorChar);
-                path = System.IO.Path.Combine(file_directory, path);
+                path = OpenBveApi.Path.CombineFile(file_directory, path);
                 if (File.Exists(path)) {
                     plugin_path_.Add(path);
                 }
